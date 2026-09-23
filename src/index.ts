@@ -11,8 +11,26 @@
  * Learn more at https://developers.cloudflare.com/workers/
  */
 
+import { env } from "process";
+
+export interface Env {
+practica6: D1Database;
+}
+
+const data = await this.queryDatabase(env.practica6);
+
+async queryDatabase(db: D1Database) {
+// Connect and execute a query
+const { results } = await db.prepare("SELECT * FROM users").all();
+return results;
+}
+
 export default {
 	async fetch(request, env, ctx): Promise<Response> {
 		return new Response("Hola desde el worker Soy Nestor ");
 	},
 } satisfies ExportedHandler<Env>;
+
+
+
+

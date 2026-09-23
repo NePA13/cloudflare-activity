@@ -4,5 +4,12 @@
 	"compatibility_date": "2026-09-20",
 	"observability":{
 		"enabled": true
-	}
+	},
+	"d1_databases": [
+		{
+		"binding": "p6",
+		"database_name": "practica6",
+		"database_id": "7d520336-9d0b-4a10-9922-b0e4482d0bd5"
+		}
+	]
 }
