@@ -1,36 +1,23 @@
-/**
- * Welcome to Cloudflare Workers! This is your first worker.
- *
- * - Run `npm run dev` in your terminal to start a development server
- * - Open a browser tab at http://localhost:8787/ to see your worker in action
- * - Run `npm run deploy` to publish your worker
- *
- * Bind resources to your worker in `wrangler.jsonc`. After adding bindings, a type definition for the
- * `Env` object can be regenerated with `npm run cf-typegen`.
- *
- * Learn more at https://developers.cloudflare.com/workers/
- */
-
-import { env } from "process";
-
 export interface Env {
-practica6: D1Database;
+  practica6: D1Database;
 }
 
-const data = await this.queryDatabase(env.practica6);
-
-async queryDatabase(db: D1Database) {
-// Connect and execute a query
-const { results } = await db.prepare("SELECT * FROM users").all();
-return results;
+// 1. Added the 'function' keyword here
+async function queryDatabase(db: D1Database) {
+  // Connect and execute a query
+  const { results } = await db.prepare("SELECT * FROM users").all();
+  return results;
 }
 
 export default {
-	async fetch(request, env, ctx): Promise<Response> {
-		return new Response("Hola desde el worker Soy Nestor ");
-	},
+  async fetch(request, env, ctx): Promise<Response> {
+    // 2. Moved the database query inside the fetch handler 
+    // where the 'env' object is actually available and valid.
+    const data = await queryDatabase(env.practica6);
+    
+    // You can now use 'data' in your response
+    return new Response("Hola desde el worker Soy Nestor. Datos: " + JSON.stringify(data));
+  },
 } satisfies ExportedHandler<Env>;
-
-
 
 
