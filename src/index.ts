@@ -1,8 +1,7 @@
 export interface Env {
-  practica6: D1Database;
+  p6: D1Database; // Cambiado para coincidir con el binding
 }
 
-// Sacamos la función del objeto exportado
 async function queryDatabase(db: D1Database) {
   const { results } = await db.prepare("SELECT * FROM users").all();
   return results;
@@ -10,8 +9,8 @@ async function queryDatabase(db: D1Database) {
 
 export default {
   async fetch(request, env, ctx): Promise<Response> {
-    // Llamamos a la función directamente sin el 'this'
-    const data = await queryDatabase(env.practica6);
+    // Usamos env.p6 en lugar de env.practica6
+    const data = await queryDatabase(env.p6);
     return Response.json({ message: "Hello world 3!", dbData: data });
   },
 } satisfies ExportedHandler<Env>;
