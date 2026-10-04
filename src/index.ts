@@ -1,17 +1,29 @@
-export interface Env {
-  p6: D1Database; // Cambiado para coincidir con el binding
-}
+import { getUsers } from "./users";
 
-async function queryDatabase(db: D1Database) {
-  const { results } = await db.prepare("SELECT * FROM users").all();
-  return results;
+export interface Env {
+	p6: D1Database; // Binding de la base de datos D1 (ver wrangler.jsonc)
 }
 
 export default {
-  async fetch(request, env, ctx): Promise<Response> {
-    // Usamos env.p6 en lugar de env.practica6
-    const data = await queryDatabase(env.p6);
-    return Response.json({ message: "Hello world 3!", dbData: data });
-  },
-} satisfies ExportedHandler<Env>;
+	async fetch(request, env, ctx): Promise<Response> {
+		const url = new URL(request.url);
 
+		if (request.method !== "GET") {
+			return Response.json({ error: "Método no permitido" }, { status: 405 });
+		}
+
+		if (url.pathname === "/health") {
+			return Response.json({ status: "ok" });
+		}
+
+		try {
+			const data = await getUsers(env.p6);
+			return Response.json({ message: "Hello world 3!", dbData: data });
+		} catch (err) {
+			return Response.json(
+				{ error: "Error al consultar la base de datos" },
+				{ status: 500 },
+			);
+		}
+	},
+} satisfies ExportedHandler<Env>;

@@ -1,15 +1,30 @@
-{ 
+{
 	"name": "cloudflareactivity",
 	"main": "src/index.ts",
 	"compatibility_date": "2026-09-20",
-	"observability":{
+	"observability": {
 		"enabled": true
 	},
 	"d1_databases": [
 		{
-		"binding": "p6",
-		"database_name": "practica6",
-		"database_id": "7d520336-9d0b-4a10-9922-b0e4482d0bd5"
+			"binding": "p6",
+			"database_name": "practica6",
+			"database_id": "7d520336-9d0b-4a10-9922-b0e4482d0bd5"
 		}
-	]
+	],
+
+	// Ambiente de PRODUCCIÓN: se despliega como un Worker nuevo con su propia base de datos.
+	// Deploy: npx wrangler deploy --env production
+	"env": {
+		"production": {
+			"name": "cloudflareactivity-prod",
+			"d1_databases": [
+				{
+					"binding": "p6",
+					"database_name": "practica7-prod",
+					"database_id": "7fe8db6d-306f-4c3d-8864-7d0a4003ac46"
+				}
+			]
+		}
+	}
 }

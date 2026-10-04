@@ -4,26 +4,52 @@ import {
 	waitOnExecutionContext,
 	SELF,
 } from "cloudflare:test";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import worker from "../src/index";
 
-// For now, you'll need to do something like this to get a correctly-typed
-// `Request` to pass to `worker.fetch()`.
 const IncomingRequest = Request<unknown, IncomingRequestCfProperties>;
 
-describe("Hello World worker", () => {
-	it("responds with Hello World! (unit style)", async () => {
-		const request = new IncomingRequest("http://example.com");
-		// Create an empty context to pass to `worker.fetch()`.
+async function crearTablaUsers() {
+	await env.p6.exec("DROP TABLE IF EXISTS users");
+	await env.p6.exec("CREATE TABLE users (users TEXT)");
+	await env.p6.exec("INSERT INTO users (users) VALUES ('Nestor')");
+}
+
+describe("Worker con D1", () => {
+	beforeEach(crearTablaUsers);
+
+	it("GET / regresa el mensaje y los usuarios (unit style)", async () => {
+		const request = new IncomingRequest("http://example.com/");
 		const ctx = createExecutionContext();
 		const response = await worker.fetch(request, env, ctx);
-		// Wait for all `Promise`s passed to `ctx.waitUntil()` to settle before running test assertions
 		await waitOnExecutionContext(ctx);
-		expect(await response.text()).toMatchInlineSnapshot(`"Hola desde el worker Soy Nestor "`);
+
+		expect(response.status).toBe(200);
+		const body = await response.json<{ message: string; dbData: unknown[] }>();
+		expect(body.message).toBe("Hello world 3!");
+		expect(body.dbData).toHaveLength(1);
 	});
 
-	it("responds with Hello World! (integration style)", async () => {
-		const response = await SELF.fetch("https://example.com");
-		expect(await response.text()).toMatchInlineSnapshot(`"Hola desde el worker Soy Nestor "`);
+	it("GET / funciona de punta a punta (integration style)", async () => {
+		const response = await SELF.fetch("https://example.com/");
+		expect(response.status).toBe(200);
+		const body = await response.json<{ dbData: { users: string }[] }>();
+		expect(body.dbData[0].users).toBe("Nestor");
+	});
+
+	it("GET /health regresa ok", async () => {
+		const response = await SELF.fetch("https://example.com/health");
+		expect(await response.json()).toEqual({ status: "ok" });
+	});
+
+	it("POST regresa 405", async () => {
+		const response = await SELF.fetch("https://example.com/", { method: "POST" });
+		expect(response.status).toBe(405);
+	});
+
+	it("regresa 500 si la tabla no existe", async () => {
+		await env.p6.exec("DROP TABLE users");
+		const response = await SELF.fetch("https://example.com/");
+		expect(response.status).toBe(500);
 	});
 });

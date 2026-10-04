@@ -165,3 +165,8 @@ dist
 .env*
 !.env.example
 .wrangler/
+
+# Reportes de pruebas y build
+test-results/
+coverage/
+dist/
